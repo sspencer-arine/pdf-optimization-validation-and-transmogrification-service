@@ -97,7 +97,7 @@ spack:
   specs:
     # - coreutils@9.5 +gprefix
     # - curl@8.11.1 tls=openssl
-    # - findutils@4.10.0
+    - findutils@4.10.0
     # - ghostscript-fonts@8.11
     - ghostscript@10.05.0 -gtk -dbus -x11 -krb5
     # - openssh@9.9p1
@@ -105,8 +105,8 @@ spack:
     # - poppler@21.09.0 +cms +jpeg +tiff +png
     - qpdf@11.9.1 crypto=openssl
     # - rsync@3.4.1
-    # - tar@1.35
-    # - zip@3.0
+    - tar@1.35
+    - zip@3.0
   concretizer:
     unify: true
   config:
