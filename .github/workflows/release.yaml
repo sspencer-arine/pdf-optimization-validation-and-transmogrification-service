@@ -2,7 +2,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  release-arm64:
+  build-layer:
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout code
@@ -20,3 +20,7 @@ jobs:
           outputs: type=local,dest=python
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Print size of asset
+        run: |
+          du -sh layer/python
