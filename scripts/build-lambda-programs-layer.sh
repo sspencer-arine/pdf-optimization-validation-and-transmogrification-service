@@ -20,7 +20,7 @@ docker build \
 # Zip the output into ../build/programs.zip relative to the temporary directory.
 (
     cd "${temp_dir}"
-    zip -r programs.zip ./
+    zip -y -r programs.zip ./programs
 )
 
 # Ensure the build directory exists.

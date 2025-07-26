@@ -20,7 +20,7 @@ docker build \
 # Zip the output into ../build/requirements.zip relative to the temporary directory.
 (
     cd "${temp_dir}"
-    zip -r requirements.zip ./
+    zip -r requirements.zip ./python
 )
 
 # Ensure the build directory exists.

@@ -1,12 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: Arine PDF Optimization, Validation, and Transmogrification Service
-
-Parameters:
-  namespace:
-    Description: A string to namespace the resources created in this stack
-    Type: String
-    MaxLength: 40
+Description: PDF Optimization, Validation, and Transmogrification (OVT) Service
 
 Globals:
   Function:
@@ -19,39 +13,41 @@ Globals:
         # POWERTOOLS_LOGGER_SAMPLE_RATE: 0.1
         POWERTOOLS_LOGGER_LOG_EVENT: true
         POWERTOOLS_SERVICE_NAME:
-          Fn::Sub: ${namespace}_arine_pdf_optimization
+          Fn::Sub: ${AWS::StackName}_pdf-ovt-service
 
 Resources:
-  ArinePDFOptimizationValidationAndTransmogrificationProgramsLayer:
+  ArinePdfOvtProgramsLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName:
-        Fn::Sub: ${namespace}_arine_pdf_optimization_validation_and_transmogrification_layer
-      Description: Arine PDF Optimization, Validation, and Transmogrification Layer
+        Fn::Sub: ${AWS::StackName}_pdf-ovt-programs-layer
+      Description: Arine PDF Optimization, Validation, and Transmogrification (OVT) Programs Layer
       ContentUri: ./build/programs.zip
       CompatibleRuntimes:
         - python3.13
       RetentionPolicy: Delete
 
-  ArinePDFOptimizationValidationAndTransmogrificationPythonLayer:
+  ArinePdfOvtRequirementsLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName:
-        Fn::Sub: ${namespace}_arine_pdf_optimization_validation_and_transmogrification_layer
-      Description: Arine PDF Optimization, Validation, and Transmogrification Layer
+        Fn::Sub: ${AWS::StackName}_pdf-ovt-requirements-layer
+      Description: Arine PDF Optimization, Validation, and Transmogrification (OVT) Requirements Layer
       ContentUri: ./build/requirements.zip
       CompatibleRuntimes:
         - python3.13
       RetentionPolicy: Delete
 
-  ArinePDFOptimizationValidationAndTransmogrificationLayerHealthCheckFunction:
+  ArinePdfOvtLayerHealthCheckFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName:
-        Fn::Sub: ${namespace}_arine_pdf_optimization_validation_and_transmogrification_layer_health_check
-      Description: Health check for the Arine PDF Optimization, Validation, and Transmogrification Service
+        Fn::Sub: ${AWS::StackName}_pdf-ovt-layer-health-check
+      Description: Health check for the Arine PDF Optimization, Validation, and Transmogrification (OVT) Service
       CodeUri: ./src
-      Handler: pdf_optimization_validation_and_transmogrification_service.handlers.health_check
+      Handler: pdf_optimization_validation_and_transmogrification_service.handlers.health_check.lambda_handler
+      Architectures:
+        - arm64
       Layers:
-        - Ref: ArinePDFOptimizationValidationAndTransmogrificationProgramsLayer
-        - Ref: ArinePDFOptimizationValidationAndTransmogrificationPythonLayer
+        - Ref: ArinePdfOvtProgramsLayer
+        - Ref: ArinePdfOvtRequirementsLayer

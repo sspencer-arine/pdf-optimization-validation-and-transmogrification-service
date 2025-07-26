@@ -16,24 +16,20 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          file: programs/Dockerfile
+          file: layers/programs/Dockerfile
           load: false
           push: false
           outputs: type=local,dest=programs
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Print size of asset
-        run: |
-          du -sh programs
-
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          file: lambda/Dockerfile
+          file: layers/requirements/Dockerfile
           load: false
           push: false
-          outputs: type=local,dest=programs
+          outputs: type=local,dest=requirements
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

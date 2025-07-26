@@ -83,7 +83,7 @@ spack:
     # - coreutils@9.5 +gprefix
     # - curl@8.11.1 tls=openssl
     # - findutils@4.10.0
-    # - ghostscript-fonts@8.11
+    - ghostscript-fonts@8.11
     - ghostscript@10.05.0 -gtk -dbus -x11 -krb5
     # - openssh@9.9p1
     - openssl@3.4.1
