@@ -1,9 +1,13 @@
 from subprocess import check_output  # noqa: S404
 
+from aws_lambda_powertools.logging import Logger
 from aws_lambda_powertools.utilities.typing.lambda_context import LambdaContext
 
+logger = Logger()
 
-def lambda_handler(event: dict, context: LambdaContext) -> dict:
+
+@logger.inject_lambda_context
+def health_check_handler(event: dict, context: LambdaContext) -> dict:
 
     ghostscript_version = check_output(["/opt/programs/view/bin/gs", "--version"]).decode("utf-8")  # noqa: S603, S607
     ghostscript_help = check_output(["/opt/programs/view/bin/gs", "--help"]).decode("utf-8")  # noqa: S603, S607

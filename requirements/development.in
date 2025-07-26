@@ -1,7 +1,7 @@
 bandit[toml,yaml]~=1.8
 black[colorama]~=25.1
-# boto3-stubs[boto3,dynamodb,s3]~=1.38
-# botocore-stubs[botocore]~=1.38
+boto3-stubs[boto3,s3]~=1.38
+botocore-stubs[botocore]~=1.38
 commitizen~=4.2
 coverage[toml]~=7.6
 cz-github-jira-conventional~=3.0
@@ -16,6 +16,7 @@ flake8-pyproject~=1.2
 flake8-return~=1.2
 flake8-use-pathlib~=0.3
 flake8~=7.1
+freezegun~=1.5
 hypothesis[cli,pytest,zoneinfo]~=6.125
 isort[colors,plugins]~=6.0
 mypy[install-types]~=1.14
@@ -30,8 +31,3 @@ pytest~=8.3
 taplo~=0.9
 toml-sort~=0.24
 tox~=4.24
-# types-jsonpatch
-# types-lxml~=2025.3.30
-# types-pyyaml~=6.0
-# types-reportlab~=4.4.1
-# types-simplejson~=3.19

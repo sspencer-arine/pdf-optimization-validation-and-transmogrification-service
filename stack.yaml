@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: PDF Optimization, Validation, and Transmogrification (OVT) Service
+Description: Arine PDF Optimization, Validation, and Transmogrification (OVT) Service
 
 Globals:
   Function:
@@ -13,14 +13,14 @@ Globals:
         # POWERTOOLS_LOGGER_SAMPLE_RATE: 0.1
         POWERTOOLS_LOGGER_LOG_EVENT: true
         POWERTOOLS_SERVICE_NAME:
-          Fn::Sub: ${AWS::StackName}_pdf-ovt-service
+          Fn::Sub: ${AWS::StackName}_arine-pdf-ovt-service
 
 Resources:
   ArinePdfOvtProgramsLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName:
-        Fn::Sub: ${AWS::StackName}_pdf-ovt-programs-layer
+        Fn::Sub: ${AWS::StackName}_arine-pdf-ovt-programs
       Description: Arine PDF Optimization, Validation, and Transmogrification (OVT) Programs Layer
       ContentUri: ./build/programs.zip
       CompatibleRuntimes:
@@ -31,7 +31,7 @@ Resources:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName:
-        Fn::Sub: ${AWS::StackName}_pdf-ovt-requirements-layer
+        Fn::Sub: ${AWS::StackName}_arine-pdf-ovt-requirements
       Description: Arine PDF Optimization, Validation, and Transmogrification (OVT) Requirements Layer
       ContentUri: ./build/requirements.zip
       CompatibleRuntimes:
@@ -42,12 +42,32 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName:
-        Fn::Sub: ${AWS::StackName}_pdf-ovt-layer-health-check
+        Fn::Sub: ${AWS::StackName}_arine-pdf-ovt-health-check
       Description: Health check for the Arine PDF Optimization, Validation, and Transmogrification (OVT) Service
       CodeUri: ./src
-      Handler: pdf_optimization_validation_and_transmogrification_service.handlers.health_check.lambda_handler
+      Handler: arine_pdf_ovt.health_check.handlers.health_check_handler
       Architectures:
         - arm64
+      Environment:
+        Variables:
+          POWERTOOLS_METRICS_NAMESPACE: health-check
+      Layers:
+        - Ref: ArinePdfOvtProgramsLayer
+        - Ref: ArinePdfOvtRequirementsLayer
+
+  ArinePdfOvtLayerS3DirectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        Fn::Sub: ${AWS::StackName}_arine-pdf-ovt-s3-direct
+      Description: S3 direct handler for the Arine PDF Optimization, Validation, and Transmogrification (OVT) Service
+      CodeUri: ./src
+      Handler: arine_pdf_ovt.s3_direct.handlers.s3_direct_handler
+      Architectures:
+        - arm64
+      Environment:
+        Variables:
+          POWERTOOLS_METRICS_NAMESPACE: s3-direct
       Layers:
         - Ref: ArinePdfOvtProgramsLayer
         - Ref: ArinePdfOvtRequirementsLayer

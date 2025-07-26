@@ -33,6 +33,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Report sizes
+        run: |
+          echo "Programs layer size:"
+          du -sh programs
+          echo "Requirements layer size:"
+          du -sh requirements
+
       # # If this is a release upload the layer asset to the release.
       # - name: Upload layer asset
       #   if: github.event_name == 'release' && github.event.action == 'published'
