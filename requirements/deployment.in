@@ -1,0 +1,8 @@
+build~=1.2
+twine~=6.1
+# Required by twine if sys platform is linux.. we need to ensure this is installed even if we are not on linux so that
+# hash checked installations can be done.
+keyring~=25.6
+# Required by keyring if sys platform is linux.. also need to ensure this is installed
+jeepney>=0.4.2
+secretstorage>=3.2

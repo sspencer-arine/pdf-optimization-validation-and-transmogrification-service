@@ -1,0 +1,26 @@
+# auto-all~=1.4
+boto3[crt]~=1.38
+botocore[crt]~=1.38
+aws-lambda-powertools[aws-sdk,parser,tracer]~=3.17
+# content-types~=0.2
+# docker~=7.1
+# faker~=37.4
+# freezegun~=1.5
+# glom~=24.11
+# jinja2[i18n]~=3.1
+# json2pdf~=0.11.2
+# jsonpatch~=1.0
+# lxml~=6.0
+# mistql~=0.4
+# pymupdf~=1.26.3
+# python-dotenv~=1.1.1
+# pyyaml~=6.0
+# reportlab==4.4.2
+# rich~=14.0
+# rlbidi~=0.1.1
+# rlextra[pycairo]~=4.4.2
+# simplejson~=3.19
+# tenacity~=9.0
+typeguard~=4.4
+# typer~=0.15
+# watchdog~=6.0

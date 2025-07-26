@@ -1,0 +1,71 @@
+# Sort me often using ./scripts/sort-pyproject-toml.sh
+
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools-scm[toml]~=8.2", "setuptools~=80.9", "wheel~=0.45"]
+
+[project]
+authors = [{ email = "sspencer@arine.io", name = "Shane R. Spencer" }]
+description = "PDF Optimization, Validation, and Transmogrification Service"
+dynamic = ["dependencies", "optional-dependencies", "version"]
+name = "pdf-optimization-validation-and-transmogrification-service"
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+
+[project.urls]
+homepage = "https://github.com/sspencer-arine/pdf-optimization-validation-and-transmogrification-service"
+
+[tool.black]
+line-length = 120
+
+[tool.commitizen]
+github_repo = "sspencer-arine/pdf-optimization-validation-and-transmogrification-service"
+jira_base_url = "https://akesoteam.atlassian.net"
+jira_prefix = ["DEVOPS-", "FS-", "INFRA-", "INT-", "PROD-"]
+major_version_zero = true
+name = "cz_github_jira_conventional"
+tag_format = "$version"
+update_changelog_on_bump = true
+version_provider = "scm"
+version_scheme = "pep440"
+
+[tool.coverage.run]
+omit = ["tests/*"]
+
+[tool.flake8]
+doctests = true
+max-line-length = 120
+per-file-ignores = """
+    tests/**: S101
+    src/**: A005
+"""
+
+[tool.isort]
+line_length = 120
+profile = "black"
+
+[tool.mypy]
+
+[tool.pytest.ini_options]
+addopts = "--doctest-modules --cov=pdf_template_management --cov-report term-missing --durations=100 --durations-min=0.5"
+filterwarnings = [
+  # Ignore deprecation warnings ... we are already so deprecated that we can't fix them all.
+  "ignore::DeprecationWarning",
+]
+testpaths = ["src", "tests"]
+typeguard-collection-check-strategy = "ALL_ITEMS"
+typeguard-forward-ref-policy = "ERROR"
+typeguard-packages = "pdf_asset_management"
+
+[tool.setuptools.dynamic.dependencies]
+file = ["./requirements/production.in"]
+
+[tool.setuptools.dynamic.optional-dependencies]
+deployment = { file = ["./requirements/deployment.in"] }
+development = { file = ["./requirements/development.in"] }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools_scm]
+version_scheme = "python-simplified-semver"

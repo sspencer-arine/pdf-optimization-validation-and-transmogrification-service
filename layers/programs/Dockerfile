@@ -1,14 +1,12 @@
 # syntax=docker/dockerfile:1.17.1
 ARG TARGETARCH
 
-FROM public.ecr.aws/lambda/provided:al2.2025.07.23.13 AS build
+FROM public.ecr.aws/sam/build-python3.13:latest AS build
 
 RUN <<EOF
     # Install Development Tools, Python, and Git.
-    set -e
-    yum update -y
-    yum group install -y "Development Tools"
-    yum install -y python3 git
+    dnf group install -y "Development Tools"
+    dnf install -y python3 git
 EOF
 
 # Set up environment variables for Spack.
@@ -60,23 +58,10 @@ ARG TARGETARCH
 
 FROM build-${TARGETARCH} AS build-targetarch
 
-# Set up ccache to speed up builds by caching compiled objects.
-ENV CCACHE_DIR=/opt/ccache
-
-RUN mkdir -p "${CCACHE_DIR}"
-
-RUN <<EOF
-    # Source the Spack environment and install ccache to speed up subsequent builds.  This has a side effect of
-    # installing a bunch of build dependencies as well.
-    set -e
-    . /build/spack/share/spack/setup-env.sh
-    spack install ccache -redis
-EOF
-
-RUN mkdir -p "/opt/pdf_optimization_validation_and_transmogrification_service/bin"
-RUN mkdir -p "/opt/pdf_optimization_validation_and_transmogrification_service/environment"
-RUN mkdir -p "/opt/pdf_optimization_validation_and_transmogrification_service/view"
-RUN mkdir -p "/opt/pdf_optimization_validation_and_transmogrification_service/software"
+RUN mkdir -p "/opt/programs/bin"
+RUN mkdir -p "/opt/programs/environment"
+RUN mkdir -p "/opt/programs/view"
+RUN mkdir -p "/opt/programs/software"
 
 # Create a Spack environment file that defines the packages we want to compartmentalize.
 #   - https://github.com/spack/spack-packages/blob/develop/repos/spack_repo/builtin/packages/coreutils/package.py
@@ -92,16 +77,16 @@ RUN mkdir -p "/opt/pdf_optimization_validation_and_transmogrification_service/so
 #   - https://github.com/spack/spack-packages/blob/develop/repos/spack_repo/builtin/packages/rsync/package.py
 #   - https://github.com/spack/spack-packages/blob/develop/repos/spack_repo/builtin/packages/tar/package.py
 #   - https://github.com/spack/spack-packages/blob/develop/repos/spack_repo/builtin/packages/zip/package.py
-COPY <<EOF /opt/pdf_optimization_validation_and_transmogrification_service/environment/spack.yaml
+COPY <<EOF /opt/programs/environment/spack.yaml
 spack:
   specs:
     # - coreutils@9.5 +gprefix
     # - curl@8.11.1 tls=openssl
-    - findutils@4.10.0
+    # - findutils@4.10.0
     # - ghostscript-fonts@8.11
     - ghostscript@10.05.0 -gtk -dbus -x11 -krb5
     # - openssh@9.9p1
-    # - openssl@3.4.1
+    - openssl@3.4.1
     # - poppler@21.09.0 +cms +jpeg +tiff +png
     - qpdf@11.9.1 crypto=openssl
     # - rsync@3.4.1
@@ -110,21 +95,19 @@ spack:
   concretizer:
     unify: true
   config:
-    install_tree: /opt/pdf_optimization_validation_and_transmogrification_service/software
-    ccache: true
+    install_tree: /opt/programs/software
     shared_linking:
         bind: true
-  view: /opt/pdf_optimization_validation_and_transmogrification_service/view
+  view: /opt/programs/view
 EOF
 
 ARG TARGETARCH
 
-RUN --mount=type=cache,target=/opt/ccache,id=ccache-cache-${TARGETARCH},sharing=locked <<EOF
+RUN <<EOF
     # Activate the Spack environment and install the packages defined in the spack.yaml file.
     set -e
     . /build/spack/share/spack/setup-env.sh
-    spack load ccache
-    spack env activate /opt/pdf_optimization_validation_and_transmogrification_service/environment
+    spack env activate /opt/programs/environment
     spack install --concurrent-packages 1 --fail-fast
 EOF
 
@@ -132,14 +115,14 @@ RUN <<EOF
     # Clean up the Spack environment to remove unnecessary files and directories.
     set -e
     . /build/spack/share/spack/setup-env.sh
-    spack env activate /opt/pdf_optimization_validation_and_transmogrification_service/environment
+    spack env activate /opt/programs/environment
     spack gc --yes-to-all
 EOF
 
 RUN <<EOF
     # Strip unnecessary symbols from the binaries in the view directory to reduce the size of the final image.
     set -e
-    find -L /opt/pdf_optimization_validation_and_transmogrification_service/software -type f -exec readlink -f '{}' \; \
+    find -L /opt/programs/software -type f -exec readlink -f '{}' \; \
     | xargs file -i \
     | grep 'charset=binary' \
     | grep 'x-executable\|x-archive\|x-sharedlib' \
@@ -149,4 +132,4 @@ EOF
 
 # Bring over only what we need at this point to create a minimal layer asset.
 FROM scratch
-COPY --from=build-targetarch /opt/pdf_optimization_validation_and_transmogrification_service /opt/pdf_optimization_validation_and_transmogrification_service
+COPY --from=build-targetarch /opt/programs /programs

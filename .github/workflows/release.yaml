@@ -16,16 +16,26 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: "{{defaultContext}}:layer"
+          file: programs/Dockerfile
           load: false
           push: false
-          outputs: type=local,dest=python
+          outputs: type=local,dest=programs
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Print size of asset
         run: |
-          du -sh python
+          du -sh programs
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          file: lambda/Dockerfile
+          load: false
+          push: false
+          outputs: type=local,dest=programs
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       # # If this is a release upload the layer asset to the release.
       # - name: Upload layer asset

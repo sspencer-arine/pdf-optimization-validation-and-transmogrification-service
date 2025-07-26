@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Arine PDF Optimization, Validation, and Transmogrification Service
+
+Parameters:
+  namespace:
+    Description: A string to namespace the resources created in this stack
+    Type: String
+    MaxLength: 40
+
+Globals:
+  Function:
+    Timeout: 5
+    Runtime: python3.13
+    Tracing: Active
+    Environment:
+      Variables:
+        POWERTOOLS_LOG_LEVEL: INFO
+        # POWERTOOLS_LOGGER_SAMPLE_RATE: 0.1
+        POWERTOOLS_LOGGER_LOG_EVENT: true
+        POWERTOOLS_SERVICE_NAME:
+          Fn::Sub: ${namespace}_arine_pdf_optimization
+
+Resources:
+  ArinePDFOptimizationValidationAndTransmogrificationProgramsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName:
+        Fn::Sub: ${namespace}_arine_pdf_optimization_validation_and_transmogrification_layer
+      Description: Arine PDF Optimization, Validation, and Transmogrification Layer
+      ContentUri: ./build/programs.zip
+      CompatibleRuntimes:
+        - python3.13
+      RetentionPolicy: Delete
+
+  ArinePDFOptimizationValidationAndTransmogrificationPythonLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName:
+        Fn::Sub: ${namespace}_arine_pdf_optimization_validation_and_transmogrification_layer
+      Description: Arine PDF Optimization, Validation, and Transmogrification Layer
+      ContentUri: ./build/requirements.zip
+      CompatibleRuntimes:
+        - python3.13
+      RetentionPolicy: Delete
+
+  ArinePDFOptimizationValidationAndTransmogrificationLayerHealthCheckFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        Fn::Sub: ${namespace}_arine_pdf_optimization_validation_and_transmogrification_layer_health_check
+      Description: Health check for the Arine PDF Optimization, Validation, and Transmogrification Service
+      CodeUri: ./src
+      Handler: pdf_optimization_validation_and_transmogrification_service.handlers.health_check
+      Layers:
+        - Ref: ArinePDFOptimizationValidationAndTransmogrificationProgramsLayer
+        - Ref: ArinePDFOptimizationValidationAndTransmogrificationPythonLayer

@@ -1,0 +1,10 @@
+# install pip-tools via pipx for now via:
+#   `pipx install pip-tools`
+# or even:
+#   `pipx install "pip-tools @ git+https://github.com/jazzband/pip-tools.git"
+# There is an issue with modern pip we need to avoid this way.
+# pip-tools~=7.4
+pip~=25.1
+setuptools-scm[toml]~=8.2
+setuptools~=80.9
+wheel~=0.45
