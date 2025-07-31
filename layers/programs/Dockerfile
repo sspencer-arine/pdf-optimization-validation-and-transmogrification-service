@@ -17,13 +17,19 @@ ENV SPACK_ROOT=/build/spack
 RUN mkdir -p "/build/spack"
 RUN mkdir -p "/build/packages"
 
+ARG ARINE_SPACK_BRANCH
+ARG ARINE_SPACK_COMMIT
+
+ARG ARINE_SPACK_PACKAGES_BRANCH
+ARG ARINE_SPACK_PACKAGES_COMMIT
+
 RUN --mount=type=ssh <<EOF
-    # Install Spack.
+    # Install Spack (spack@${ARINE_SPACK_BRANCH}:${ARINE_SPACK_COMMIT} spack-packages@${ARINE_SPACK_PACKAGES_BRANCH}:${ARINE_SPACK_PACKAGES_COMMIT}).
     set -e
 
     # Clone the Spack repository and the Spack packages repository.
-    git clone --depth=20 --branch=arine/v1.0 https://github.com/sspencer-arine/spack /build/spack
-    git clone --depth=20 --branch=arine/v2025.07 https://github.com/sspencer-arine/spack-packages /build/packages
+    git clone --depth=20 --branch=${ARINE_SPACK_BRANCH} https://github.com/sspencer-arine/spack /build/spack
+    git clone --depth=20 --branch=${ARINE_SPACK_PACKAGES_BRANCH} https://github.com/sspencer-arine/spack-packages /build/packages
 
     # Source Spack into the environment.
     . /build/spack/share/spack/setup-env.sh

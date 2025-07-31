@@ -9,10 +9,20 @@ cd "$(dirname "$0")"
 temp_dir=$(mktemp -d)
 trap 'rm -rf "${temp_dir}"' EXIT
 
+arine_spack_branch="arine/v1.0"
+arine_spack_packages_branch="arine/v2025.07"
+
+arine_spack_commit=$(git ls-remote https://github.com/sspencer-arine/spack ${arine_spack_branch} | cut -f 1)
+arine_spack_packages_commit=$(git ls-remote https://github.com/sspencer-arine/spack-packages ${arine_spack_packages_branch} | cut -f 1)
+
 # Do the build.
 docker build \
     --platform=linux/arm64 \
     --progress=plain \
+    --build-arg ARINE_SPACK_BRANCH="${arine_spack_branch}" \
+    --build-arg ARINE_SPACK_COMMIT="${arine_spack_commit}" \
+    --build-arg ARINE_SPACK_PACKAGES_BRANCH="${arine_spack_packages_branch}" \
+    --build-arg ARINE_SPACK_PACKAGES_COMMIT="${arine_spack_packages_commit}" \
     --file=../layers/programs/Dockerfile \
     --output "type=local,dest=${temp_dir}" \
     ..

@@ -2,8 +2,8 @@
 
 set -exu -o pipefail
 
-# ./scripts/build-lambda-programs-layer.sh
-# ./scripts/build-lambda-python-layer.sh
+./scripts/build-lambda-programs-layer.sh
+./scripts/build-lambda-python-layer.sh
 ./scripts/build-lambda-project.sh
 
 sam build --config-file samconfig_dev.yaml
