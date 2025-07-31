@@ -83,10 +83,11 @@ spack:
     # - coreutils@9.5 +gprefix
     # - curl@8.11.1 tls=openssl
     # - findutils@4.10.0
+    # - font-util@1.4.1 fonts=font-alias
     - ghostscript-fonts@8.11
     - ghostscript@10.05.0 -gtk -dbus -x11 -krb5
-    # - openssh@9.9p1
-    - openssl@3.4.1
+    # - openssh@9.9p1 -gssapi
+    # - openssl@3.4.1
     # - poppler@21.09.0 +cms +jpeg +tiff +png
     - qpdf@11.9.1 crypto=openssl
     # - rsync@3.4.1
@@ -112,11 +113,49 @@ RUN <<EOF
 EOF
 
 RUN <<EOF
+    # Clean up the Spack environment to remove unnecessary programs, files and directories.
+    set -e
+    . /build/spack/share/spack/setup-env.sh
+    spack env activate /opt/programs/environment
+    spack clean --all
+    spack gc --yes-to-all
+EOF
+
+RUN <<EOF
     # Clean up the Spack environment to remove unnecessary files and directories.
     set -e
     . /build/spack/share/spack/setup-env.sh
     spack env activate /opt/programs/environment
-    spack gc --yes-to-all
+    spack spec | tee /opt/programs/environment/spack-spec.txt
+EOF
+
+RUN <<EOF
+    # Remove unnecessary directories from the software directory to reduce the size of the final image.
+    set -e
+
+    rm -rf /opt/programs/software/linux-aarch64/*/include
+    rm -rf /opt/programs/software/linux-aarch64/*/lib*/*.a
+    rm -rf /opt/programs/software/linux-aarch64/*/lib*/cmake
+    rm -rf /opt/programs/software/linux-aarch64/*/lib*/pkgconfig
+    rm -rf /opt/programs/software/linux-aarch64/*/man
+    rm -rf /opt/programs/software/linux-aarch64/*/share/*-completion
+    rm -rf /opt/programs/software/linux-aarch64/*/share/aclocal
+    rm -rf /opt/programs/software/linux-aarch64/*/share/doc
+    rm -rf /opt/programs/software/linux-aarch64/*/share/examples
+    rm -rf /opt/programs/software/linux-aarch64/*/share/gtk-doc
+    rm -rf /opt/programs/software/linux-aarch64/*/share/i18n
+    rm -rf /opt/programs/software/linux-aarch64/*/share/info
+    rm -rf /opt/programs/software/linux-aarch64/*/share/locale
+    rm -rf /opt/programs/software/linux-aarch64/*/share/man
+    rm -rf /opt/programs/software/linux-aarch64/*/share/terminfo
+    rm -rf /opt/programs/software/linux-aarch64/*/share/vim
+    rm -rf /opt/programs/software/linux-aarch64/*/share/zsh
+
+    # Remove symlinks that point to non-existent files.
+    find /opt/programs -xtype l -delete
+
+    # Remove empty directories.
+    find /opt/programs -type d -empty -delete
 EOF
 
 RUN <<EOF
@@ -127,9 +166,10 @@ RUN <<EOF
     | grep 'charset=binary' \
     | grep 'x-executable\|x-archive\|x-sharedlib' \
     | awk -F: '{print $1}' \
-    | xargs strip -s
+    | xargs strip --verbose --strip-debug --strip-unneeded
 EOF
 
 # Bring over only what we need at this point to create a minimal layer asset.
-FROM scratch
+FROM scratch AS target
+
 COPY --from=build-targetarch /opt/programs /programs

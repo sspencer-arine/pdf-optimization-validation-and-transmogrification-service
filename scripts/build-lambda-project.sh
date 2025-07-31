@@ -13,19 +13,19 @@ trap 'rm -rf "${temp_dir}"' EXIT
 docker build \
     --platform=linux/arm64 \
     --progress=plain \
-    --file=../layers/programs/Dockerfile \
+    --file=../project/Dockerfile \
     --output "type=local,dest=${temp_dir}" \
     ..
 
-# Zip the output into ../build/programs.zip relative to the temporary directory.
+# Zip the output into ../build/project.zip relative to the temporary directory.
 (
-    cd "${temp_dir}"
-    zip -y -r programs.zip ./programs
-    du -h -c -s ./programs
+    cd "${temp_dir}/project"
+    zip -r ../project.zip .
+    du -h -c -s ../project
 )
 
 # Ensure the build directory exists.
 mkdir -p ../build
 
 # Move the zip file to the build directory.
-mv "${temp_dir}/programs.zip" ../build/programs.zip
+mv "${temp_dir}/project.zip" ../build/project.zip

@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import TYPE_CHECKING, Literal, overload
 
 import boto3
@@ -40,6 +41,12 @@ class AwsS3Client:
     def __init__(self, aws_session: AwsSession):
         self.aws_session = aws_session
         self.aws_s3_client = aws_session.create_client("s3")
+
+    def download_file(self, bucket: str, key: str, pdf_path: Path):
+        self.aws_s3_client.download_file(bucket, key, str(pdf_path))
+
+    def upload_file(self, bucket: str, key: str, pdf_path: Path):
+        self.aws_s3_client.upload_file(str(pdf_path), bucket, key)
 
     def __enter__(self):
         return self

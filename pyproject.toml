@@ -47,7 +47,7 @@ profile = "black"
 [tool.mypy]
 
 [tool.pytest.ini_options]
-addopts = "--doctest-modules --cov=pdf_template_management --cov-report term-missing --durations=100 --durations-min=0.5"
+addopts = "--doctest-modules --cov=arine_pdf_ovt --cov-report term-missing --durations=100 --durations-min=0.5"
 filterwarnings = [
   # Ignore deprecation warnings ... we are already so deprecated that we can't fix them all.
   "ignore::DeprecationWarning",

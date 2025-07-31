@@ -1,20 +1,28 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: Arine PDF Optimization, Validation, and Transmogrification (OVT) Service
+Description: Arine PDF-OVT Service
 
 Outputs:
-  ArinePdfOvtLayerHealthCheckFunctionLatestArn:
+  ArinePdfOvtLayerHealthCheckFunctionArn:
     Description: ARN of the health check function
     Value:
-      Fn::Sub: ${ArinePdfOvtHealthCheckFunction.Arn}
-  ArinePdfOvtLayerHealthCheckFunctionLatestVersion:
-    Description: Latest version of the health check function
+      Fn::Sub: ${ArinePdfOvtHealthCheckDirectFunction.Arn}
+  ArinePdfOvtLayerOptimizeDirectFunctionArn:
+    Description: ARN of the optimize direct function
     Value:
-      Fn::Sub: live
+      Fn::Sub: ${ArinePdfOvtOptimizeDirectFunction.Arn}
+  ArinePdfOvtLayerHealthCheckFunctionSnapStartArn:
+    Description: ARN of the health check function
+    Value:
+      Fn::Sub: ${ArinePdfOvtHealthCheckDirectFunction.Arn}:snapstart
+  ArinePdfOvtLayerOptimizeDirectFunctionSnapStartArn:
+    Description: ARN of the optimize direct function
+    Value:
+      Fn::Sub: ${ArinePdfOvtOptimizeDirectFunction.Arn}:snapstart
 
 Globals:
   Function:
-    Timeout: 5
+    Timeout: 30
     Runtime: python3.13
     Tracing: Active
     Environment:
@@ -24,6 +32,7 @@ Globals:
         POWERTOOLS_LOGGER_LOG_EVENT: true
         POWERTOOLS_SERVICE_NAME:
           Fn::Sub: ${AWS::StackName}_arine-pdf-ovt-service
+        AWS_S3_BUCKET_NAMES: arine-followup-reports-dev
 
 Resources:
   ArinePdfOvtS3Policy:
@@ -49,73 +58,86 @@ Resources:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName:
-        Fn::Sub: ${AWS::StackName}_arine-pdf-ovt-programs
-      Description: Arine PDF Optimization, Validation, and Transmogrification (OVT) Programs Layer
+        Fn::Sub: ${AWS::StackName}_arine-pdf-ovt-common-programs
+      Description: Arine PDF-OVT Programs Layer
       ContentUri: ./build/programs.zip
       CompatibleRuntimes:
         - python3.13
       RetentionPolicy: Delete
 
-  ArinePdfOvtCommonRequirementsLayer:
+  ArinePdfOvtCommonPythonLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName:
-        Fn::Sub: ${AWS::StackName}_arine-pdf-ovt-requirements
-      Description: Arine PDF Optimization, Validation, and Transmogrification (OVT) Requirements Layer
-      ContentUri: ./build/requirements.zip
+        Fn::Sub: ${AWS::StackName}_arine-pdf-ovt-common-python
+      Description: Arine PDF-OVT Python Layer
+      ContentUri: ./build/python.zip
       CompatibleRuntimes:
         - python3.13
       RetentionPolicy: Delete
 
-  ArinePdfOvtHealthCheckFunction:
+  ArinePdfOvtHealthCheckLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Sub: /aws/lambda/${AWS::StackName}_arine-pdf-ovt-health-check-direct
+      RetentionInDays: 90
+      RetentionPolicy: Delete
+
+  ArinePdfOvtHealthCheckDirectFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName:
-        Fn::Sub: ${AWS::StackName}_arine-pdf-ovt-health-check
-      Description: Health check for the Arine PDF Optimization, Validation, and Transmogrification (OVT) Service
-      CodeUri: ./src
-      Handler: arine_pdf_ovt.health_check.handlers.health_check_handler
+        Fn::Sub: ${AWS::StackName}_arine-pdf-ovt-health-check-direct
+      Description: Arine PDF-OVT Health Check Function
+      CodeUri: ./build/project.zip
+      Handler: arine_pdf_ovt.lambdas.health_check.handlers.health_check_direct_lambda_handler
       Architectures:
         - arm64
-      AutoPublishAlias: live
+      AutoPublishAlias: snapstart
       SnapStart:
         ApplyOn: PublishedVersions
       Environment:
         Variables:
           POWERTOOLS_METRICS_NAMESPACE: health-check
+      LoggingConfig:
+        LogGroup:
+          Ref: ArinePdfOvtHealthCheckLogGroup
       Layers:
         - Ref: ArinePdfOvtCommonProgramsLayer
-        - Ref: ArinePdfOvtCommonRequirementsLayer
+        - Ref: ArinePdfOvtCommonPythonLayer
 
-  ArinePdfOvtS3DirectLogGroup:
+  ArinePdfOvtOptimizeDirectLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName:
-        Fn::Sub: /aws/lambda/${AWS::StackName}_arine-pdf-ovt-s3-direct
+        Fn::Sub: /aws/lambda/${AWS::StackName}_arine-pdf-ovt-optimize-direct
       RetentionInDays: 90
+      RetentionPolicy: Delete
 
-  ArinePdfOvtS3DirectFunction:
+  ArinePdfOvtOptimizeDirectFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName:
-        Fn::Sub: ${AWS::StackName}_arine-pdf-ovt-s3-direct
-      Description: S3 direct handler for the Arine PDF Optimization, Validation, and Transmogrification (OVT) Service
-      CodeUri: ./src
-      Handler: arine_pdf_ovt.s3_direct.handlers.s3_direct_handler
+        Fn::Sub: ${AWS::StackName}_arine-pdf-ovt-optimize-direct
+      Description: Arine PDF-OVT Optimize (Direct) Function
+      CodeUri: ./build/project.zip
+      Handler: arine_pdf_ovt.lambdas.optimize.handlers.optimize_direct_lambda_handler
+      Timeout: 90
       MemorySize: 2048
       Architectures:
         - arm64
-      AutoPublishAlias: live
+      AutoPublishAlias: snapstart
       SnapStart:
         ApplyOn: PublishedVersions
       Environment:
         Variables:
-          POWERTOOLS_METRICS_NAMESPACE: s3-direct
+          POWERTOOLS_METRICS_NAMESPACE: optimize-direct
       LoggingConfig:
         LogGroup:
-          Ref: ArinePdfOvtS3DirectLogGroup
+          Ref: ArinePdfOvtOptimizeDirectLogGroup
       Layers:
         - Ref: ArinePdfOvtCommonProgramsLayer
-        - Ref: ArinePdfOvtCommonRequirementsLayer
+        - Ref: ArinePdfOvtCommonPythonLayer
       Policies:
         - Ref: ArinePdfOvtS3Policy
